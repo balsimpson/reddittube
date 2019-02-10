@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link href="https://fonts.googleapis.com/css?family=Abel|Fjalla+One|Oswald|Staatliches" rel="stylesheet">
+	<title>Reddit Tube</title>
+	<style>
+		:root {
+			--red: #EB5528;
+			--yellow: rgb(214, 184, 102);
+			--red-hover: rgb(187, 62, 4);
+			--red-select: rgb(136, 49, 22);
+			--dark: rgb(31, 31, 31);
+			--light: rgb(218, 218, 218);
+			--gray: rgb(148, 148, 148);
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			padding: 0;
+			margin: 0;
+			font-family: 'Oswald', sans-serif;
+			background: var(--dark);
+		}
+
+		.wrapper {
+			background-color: black;
+		}
+
+		.categories {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+			grid-gap: 4px;
+			background-color: black;
+			justify-content: center;
+			text-align: center;
+			padding-top: .4em;
+			padding-bottom: .4em;
+			font-size: .8em;
+			font-weight: 200;
+			text-transform: uppercase;
+		}
+
+		.timeperiod {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+			grid-gap: 2px;
+			/* background-color: aquamarine; */
+			justify-content: center;
+			text-align: center;
+			text-transform: uppercase;
+			/* padding: .2em; */
+		}
+
+		.video {
+			width: 560px;
+			height: 315px;
+			color: var(--light);
+		}
+		
+		.video-frame {
+			animation: fadeIn 4s forwards;
+		}
+
+		.loading {
+			display: block;
+			position: absolute;
+			left: 50%;
+			max-width: 300px;
+			bottom: 46%;
+			text-align: center;
+			justify-content: center;
+			transform: translateX(-50%);
+			animation: fadeIn 1s forwards;
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+			}
+		}
+
+		.light-gray {
+			color: gray;
+		}
+
+		.sort {
+			color: var(--yellow);
+		}
+
+		.button-lg {
+			display: flex;
+			padding: .4em;
+			background-color: var(--dark);
+			cursor: pointer;
+			font-size: 1.2em;
+			font-weight: 700;
+			transition: all 300ms ease-in-out;
+			color: var(--gray);
+			align-items: center;
+			justify-content: center;
+		}
+
+		.button-lg:hover {
+			background-color: var(--red-hover);
+			color: whitesmoke;
+		}
+
+		.btn-sort {
+			padding: .4em;
+			background-color: rgb(68, 68, 68);
+			cursor: pointer;
+			transition: all 200ms ease-in-out;
+			color: rgb(197, 197, 197)
+		}
+
+		.btn-sort:hover {
+			background-color: var(--red-hover);
+			color: whitesmoke;
+		}
+
+		.selected {
+			background-color: var(--red-select);
+			color: whitesmoke;
+		}
+
+		a {
+			text-decoration: none;
+			color: rgb(255, 208, 0);
+
+		}
+
+		a:hover {
+			color: white;
+			font-weight: 700;
+		}
+
+		/* Loading Spinner */
+		.lds-ellipsis {
+			display: block;
+			position: absolute;
+			width: 64px;
+			height: 64px;
+			left: 50%;
+			top: 50%;
+			transform: translateY(-50%);
+			transform: translateX(-50%);
+		}
+
+		.lds-ellipsis div {
+			position: absolute;
+			top: 27px;
+			width: 11px;
+			height: 11px;
+			border-radius: 50%;
+			background: var(--red);
+			animation-timing-function: cubic-bezier(0, 1, 1, 0);
+		}
+
+		.lds-ellipsis div:nth-child(1) {
+			left: 6px;
+			animation: lds-ellipsis1 0.6s infinite;
+		}
+
+		.lds-ellipsis div:nth-child(2) {
+			left: 6px;
+			animation: lds-ellipsis2 0.6s infinite;
+		}
+
+		.lds-ellipsis div:nth-child(3) {
+			left: 26px;
+			animation: lds-ellipsis2 0.6s infinite;
+		}
+
+		.lds-ellipsis div:nth-child(4) {
+			left: 45px;
+			animation: lds-ellipsis3 0.6s infinite;
+		}
+
+		@keyframes lds-ellipsis1 {
+			0% {
+				transform: scale(0);
+			}
+
+			100% {
+				transform: scale(1);
+			}
+		}
+
+		@keyframes lds-ellipsis3 {
+			0% {
+				transform: scale(1);
+			}
+
+			100% {
+				transform: scale(0);
+			}
+		}
+
+		@keyframes lds-ellipsis2 {
+			0% {
+				transform: translate(0, 0);
+			}
+
+			100% {
+				transform: translate(19px, 0);
+			}
+		}
+
+		#add-modal {
+			display: block;
+			position: absolute;
+			padding: 1em;
+			height: 100%;
+			right: 0;
+			width: 160px;
+			top: 0;
+			color: whitesmoke;
+			background-color: rgba(0, 0, 0, 0.5);
+			transform-origin: bottom;
+		}
+
+		input {
+			width: 90%;
+			padding: .2em;
+			border: 1px solid var(--red-select);
+		}
+
+		/* Popup container */
+		.popup {
+			position: relative;
+			display: inline-block;
+			cursor: pointer;
+		}
+
+		/* The actual popup (appears on top) */
+		.popup .popuptext {
+			visibility: hidden;
+			width: 160px;
+			background-color: #555;
+			color: #fff;
+			text-align: center;
+			border-radius: 6px;
+			padding: 8px 0;
+			position: absolute;
+			z-index: 1;
+			bottom: 125%;
+			left: 50%;
+			margin-left: -80px;
+		}
+
+		/* Popup arrow */
+		.popup .popuptext::after {
+			content: "";
+			position: absolute;
+			top: 100%;
+			left: 50%;
+			margin-left: -5px;
+			border-width: 5px;
+			border-style: solid;
+			border-color: #555 transparent transparent transparent;
+		}
+
+		/* Toggle this class when clicking on the popup container (hide and show the popup) */
+		.popup .show {
+			visibility: visible;
+			-webkit-animation: fadeIn 1s;
+			animation: fadeIn 1s
+		}
+
+		/* Add animation (fade in the popup) */
+		@-webkit-keyframes fadeIn {
+			from {
+				opacity: 0;
+			}
+
+			to {
+				opacity: 1;
+			}
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+			}
+
+			to {
+				opacity: 1;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div class="wrapper">
+		<div class="video">
+			<div class="lds-ellipsis">
+				<div></div>
+				<div></div>
+				<div></div>
+				<div></div>
+			</div>
+		</div>
+
+	</div>
+	<div class="footer">
+		<div class="categories">
+			<!-- <div id="videos" class="button-lg">
+				Videos
+			</div>
+			<div id="ArtisanVideos" class="button-lg">
+				Artisan
+			</div>
+			<div id="mealtimevideos" class="button-lg">
+				Mealtime
+			</div>
+			<div id="PoliceChases" class="button-lg">
+				Police Chases
+			</div>
+			<div id="usefulvids" class="button-lg">
+				Useful
+			</div>
+			<div id="trailers" class="button-lg">
+				Trailers
+			</div>
+			<div id="listentothis" class="button-lg">
+				Music
+			</div> -->
+		</div>
+		<div class="timeperiod">
+			<div id="day" class="btn-sort">day</div>
+			<div id="week" class="btn-sort">week</div>
+			<div id="month" class="btn-sort">month</div>
+			<div id="year" class="btn-sort">year</div>
+			<div id="all" class="btn-sort">all</div>
+		</div>
+		<!-- <div id="add-modal">
+			<div class="header">
+				<h2>Add Subreddit</h2>
+				<p>
+					Enter a subreddit to add it to your list.
+				</p>
+			</div>
+			<input type="text">
+			<button class="add">ADD</button>
+		</div> -->
+	</div>
+	<script src="popup.js"></script>
+</body>
+
+</html>

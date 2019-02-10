@@ -1,0 +1,20 @@
+{
+	"manifest_version": 2,
+	"name": "Reddit Tube",
+	"description": "The best YouTube videos from Reddit.",
+	"version": "1.0",
+	"permissions": [
+		"storage",
+		"tabs",
+		"https://*/"
+	],
+	"icons": {
+		"16": "reddit_16.png",
+		"48": "reddit_48.png",
+		"128": "reddit_128.png"
+	},
+	"browser_action": {
+		"default_action": "",
+		"default_popup": "popup.html"
+	}
+}
