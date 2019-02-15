@@ -70,13 +70,24 @@ const getReddit = (_category, _timeperiod) => {
 
 			let playlist_url = xhttpCall('GET', url);
 			// console.log(playlist_url);
-			
+
 			embedYoutube(playlist_url);
-			
+
 		});
 	} catch (error) {
 		console.log(error);
 	}
+}
+
+// Get Rumina Instagram Count
+const getFollowerCount = () => {
+	let count_url = `https://numerous-mosquito-9311.dataplicity.io/nodered/rumina`;
+	
+	let count = xhttpCall('GET', count_url);
+	count.then(data => {
+		console.log(data.responseText);
+		chrome.browserAction.setBadgeText({ text: data.responseText });
+	})
 }
 
 // Time Period
@@ -133,8 +144,13 @@ function embedYoutube(playlist) {
 		// https://www.youtube.com/watch?v=tgCkmUS1IYI&list=TLGGKHzrbZHOa7EwNzAyMjAxOQ
 		let _res = result.responseURL.split('&');
 		let playlist_id = _res[1].split('=');
+
+		let embed_original = `<iframe class="video-frame" width="560" height="315" src="https://www.youtube.com/embed/videoseries?list=${playlist_id[1]}&autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+		let testing = `<iframe width="560" height="315"
+		src="https://www.youtube.com/embed/videoseries?list=${playlist_id[1]}&autoplay=1&mute=2"
+		frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
 		// let media_url = playlist_url.replace("watch_videos?video_ids=", "embed/");
-		videoContainer.innerHTML = `<iframe class="video-frame" width="560" height="315" src="https://www.youtube.com/embed/videoseries?list=${playlist_id[1]}&autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+		videoContainer.innerHTML = testing;
 	})
 }
 
@@ -175,6 +191,8 @@ function showLoading(txt) {
 
 	parentDiv.appendChild(load_txt);
 }
+
+// chrome.browserAction.setBadgeText({ text: "444" });
 
 // // Chrome Storage
 // chrome.storage.sync.set({ userData: value }, function () {
@@ -262,7 +280,7 @@ const renderCategories = (data) => {
 // addClass('#videos', "selected");
 
 getUserFavourites();
-
+getFollowerCount();
 /*
 
 <div id="videos" class="button-lg">

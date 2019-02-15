@@ -1,8 +1,8 @@
 {
 	"manifest_version": 2,
 	"name": "Reddit Tube",
-	"description": "The best YouTube videos from Reddit.",
-	"version": "1.0",
+	"description": "The Top YouTube Videos from Reddit.",
+	"version": "0.1",
 	"permissions": [
 		"storage",
 		"tabs",
