@@ -29,79 +29,6 @@ const LOADING_HTML = `
 	<div></div>
 </div>`;
 
-// Global Variable to save current playlist
-let currentPlaylist = [];
-// Video Ids of watched videos
-let watchedList = [];
-
-// loads the IFrame Player API code asynchronously
-let tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-let firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-// Create YouTube Player
-let player;
-function onYouTubeIframeAPIReady() {
-	player = new YT.Player('player', {
-		height: '390',
-		width: '640',
-		autoplay: 1,
-		events: {
-			'onReady': getUserFavourites,
-			'onStateChange': onPlayerStateChange
-		}
-	});
-}
-
-// Load Playlist when Player is ready
-// function onPlayerReady(event) {
-
-// }
-
-// Player Status Change
-/*
--1 – unstarted
-0 – ended
-1 – playing
-2 – paused
-3 – buffering
-5 – video cued
-
-YT.PlayerState.ENDED
-YT.PlayerState.PLAYING
-YT.PlayerState.PAUSED
-YT.PlayerState.BUFFERING
-YT.PlayerState.CUED
-
-*/
-function onPlayerStateChange(event) {
-	let player_state = event.data;
-	let index = event.target.getPlaylistIndex();
-
-	if (player_state === 0) {
-		console.log('ended playing ', index-1);
-		watchedList.push(currentPlaylist[index-1]);
-		// Save to storage
-		chrome.storage.sync.set({ watchedList: watchedList }, (result) => {
-			console.log('Saved Watched List: ' + watchedList);
-		});
-	}
-	if (player_state === -1) {
-		console.log('unstarted');
-	}
-	if (player_state === 1) {
-		console.log('playing ' + index++);
-	}
-	if (player_state === 5) {
-		console.log('cued');
-	}
-}
-// Stop Video
-function stopVideo() {
-	player.stopVideo();
-}
-
 const videoContainer = document.querySelector('.video');
 
 const xhttpCall = (method, url) => {
@@ -119,7 +46,7 @@ const xhttpCall = (method, url) => {
 	});
 }
 
-const getReddit = async (_category, _timeperiod) => {
+const getReddit = (_category, _timeperiod) => {
 
 	try {
 		if (_category) {
@@ -132,36 +59,83 @@ const getReddit = async (_category, _timeperiod) => {
 		}
 
 		let url = `https://www.reddit.com/r/${category}/top.json?t=${timeperiod.toLowerCase()}`;
-		console.log(`Getting Posts from: ${JSON.stringify(url, null, 2)}`);
+		console.log(`url: ${JSON.stringify(url, null, 2)}`);
 
 		let feed = xhttpCall('GET', url);
 
 		feed.then(data => {
-			let video_ids = getVideoIDs(JSON.parse(data.responseText));
-			getUnwatched(video_ids, loadPLayer);
+			// console.log(JSON.parse(data));
+
+			let url = getVideoPlaylist(JSON.parse(data.responseText));
+
+			let playlist_url = xhttpCall('GET', url);
+			// console.log(playlist_url);
+
+			embedYoutube(playlist_url);
+
 		});
 	} catch (error) {
 		console.log(error);
 	}
 }
 
-// load player
-function loadPLayer(playlist) {
-	currentPlaylist = playlist;
-	console.log('currentPlaylist', playlist);
-	player.loadPlaylist(playlist);
-}
-
 // Get Rumina Instagram Count
 const getFollowerCount = () => {
 	let count_url = `https://numerous-mosquito-9311.dataplicity.io/nodered/rumina`;
-
+	
 	let count = xhttpCall('GET', count_url);
 	count.then(data => {
 		console.log(data.responseText);
 		chrome.browserAction.setBadgeText({ text: data.responseText });
 	})
 }
+
+const getUnreadPost = (postArr, idArr) => {
+	try {
+		let post_status = false;
+		let post;
+
+		for (const key in postArr) {
+			let id = postArr[key].id;
+
+			post_status = idArr.includes(id);
+
+			if (!post_status) {
+				post = postArr[key];
+				break;
+			}
+		}
+		return post;
+
+	} catch (error) {
+
+		try {
+			return postArr[0];	
+		} catch (error) {
+			return error;
+		}
+	}
+}
+
+// Show only unwatched
+
+/*
+
+get video ids from reddit
+
+
+check with watchedlist array
+
+
+create playlist of unwatched
+
+
+when finished playing, add to watchedlist
+
+
+cleanup db every month end
+
+*/
 
 // Time Period
 document.querySelectorAll('.btn-sort').forEach(btn => {
@@ -181,18 +155,26 @@ document.querySelectorAll('.btn-sort').forEach(btn => {
 		e.target.classList.add('selected');
 	})
 })
-// get an array of video ids
-const getVideoIDs = (response) => {
+
+const getVideoPlaylist = (response) => {
 	try {
 		let feed = response.data.children;
 		let video_ids = [];
+		let playlist_url = 'https://www.youtube.com/watch_videos?video_ids=';
+
 		for (let i = 0; i < feed.length; i++) {
 			if (feed[i].data.domain == 'youtube.com' || feed[i].data.domain == 'youtu.be') {
 				let id = YouTubeGetID(feed[i].data.url);
-				video_ids.push(id);
+				let data = {
+					title: feed[i].data.title,
+					video_id: id
+				}
+				video_ids.push(data);
+				playlist_url += id + ','
 			}
 		}
-		return video_ids;
+
+		return playlist_url;
 	} catch (error) {
 		return error;
 	}
@@ -203,40 +185,20 @@ const getVideoIDs = (response) => {
 	}
 }
 
-// Remove watched videos
-const getUnwatched = (videoIDs, callback) => {
+function embedYoutube(playlist) {
+	playlist.then(result => {
+		console.log(result);
+		// https://www.youtube.com/watch?v=tgCkmUS1IYI&list=TLGGKHzrbZHOa7EwNzAyMjAxOQ
+		let _res = result.responseURL.split('&');
+		let playlist_id = _res[1].split('=');
 
-	let unWatchedList = [];
-	let watchedStatus = false;
-
-	// Get watchedList
-	chrome.storage.sync.get(['watchedList'], (result) => {
-		console.log('Watched List result: ' + JSON.stringify(result));
-		if (result && result.watchedList.length) {
-			watchedList = result.watchedList;
-			console.log('Watched List is ' + JSON.stringify(result.watchedList));
-		} else {
-			console.log('No watched List');
-		}
-
-		for (const key in videoIDs) {
-			let id = videoIDs[key];
-			watchedStatus = watchedList.includes(id);
-
-			if (!watchedStatus) {
-				unWatchedList.push(id);
-			}
-		}
-
-		console.log('watchedList: ', watchedList);
-		// Set watchedList
-		chrome.storage.sync.set({ watchedList: watchedList }, (result) => {
-			console.log('Saved Watched List: ' + result);
-		});
-
-		console.log('unWatchedList: ', unWatchedList);
-		callback(unWatchedList);
-	});
+		let embed_original = `<iframe class="video-frame" width="560" height="315" src="https://www.youtube.com/embed/videoseries?list=${playlist_id[1]}&autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+		let testing = `<iframe width="560" height="315"
+		src="https://www.youtube.com/embed/videoseries?list=${playlist_id[1]}&autoplay=1&mute=2"
+		frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
+		// let media_url = playlist_url.replace("watch_videos?video_ids=", "embed/");
+		videoContainer.innerHTML = testing;
+	})
 }
 
 function removeClass(btnClass, classToRemove) {
@@ -277,16 +239,27 @@ function showLoading(txt) {
 	parentDiv.appendChild(load_txt);
 }
 
+// chrome.browserAction.setBadgeText({ text: "444" });
+
+// // Chrome Storage
+// chrome.storage.sync.set({ userData: value }, function () {
+// 	console.log('Value is set to ' + value);
+// });
+
+// chrome.storage.sync.get(['key'], function (result) {
+// 	console.log('Value currently is ' + result.key);
+// });
+
 // Get User Favourites
 const getUserFavourites = () => {
 	chrome.storage.sync.get(['userData'], (result) => {
-		// console.log('UserData: ' + JSON.stringify(result.userData));
+		console.log('UserData: ' + JSON.stringify(result.userData));
 		if (result.userData) {
 			showLoading(result.userData.favourites[result.userData.current].join('+'));
 			renderCategories(result.userData);
 			let currentCategory = result.userData.favourites[result.userData.current].join('+');
 
-			console.log('Now Playing: ' + JSON.stringify(result.userData.current));
+			console.log('result: ' + JSON.stringify(result.userData.current));
 			document.getElementById(result.userData.current).classList.add('selected');
 			document.getElementById(result.userData.sort).classList.add('selected');
 
@@ -294,7 +267,7 @@ const getUserFavourites = () => {
 			updateUserData(user_data);
 			getReddit(currentCategory, result.userData.sort);
 		} else {
-			console.log('No UserData');
+			console.log('UserData: Else ');
 			let currentCategory = user_data.favourites[user_data.current].join('+');
 			getReddit(currentCategory, user_data.sort);
 			renderCategories(user_data);
@@ -307,7 +280,7 @@ const getUserFavourites = () => {
 
 const updateUserData = (data) => {
 	chrome.storage.sync.set({ userData: data }, function () {
-		console.log('Set UserData: ');
+		console.log('Set UserData: ' + JSON.stringify(data));
 		user_data = data;
 	});
 }
@@ -352,29 +325,53 @@ const renderCategories = (data) => {
 
 // getReddit('videos');
 // addClass('#videos', "selected");
-const mainProgram = () => {
-	// Get VideoIDs
-	getUserFavourites();
 
-	// Show only unwatched
+getUserFavourites();
+getFollowerCount();
+/*
 
-	/*
-	
-	get video ids from reddit
-	
-	
-	check with watchedlist array
-	
-	
-	create playlist of unwatched
-	
-	
-	when finished playing, add to watchedlist
-	
-	
-	cleanup db every month end
-	
-	*/
-}
+<div id="videos" class="button-lg">
+				Videos
+			</div>
+			<div id="ArtisanVideos" class="button-lg">
+				Artisan
+			</div>
+			<div id="mealtimevideos" class="button-lg">
+				Mealtime
+			</div>
+			<div id="PoliceChases" class="button-lg">
+				Police Chases
+			</div>
+			<div id="usefulvids" class="button-lg">
+				Useful
+			</div>
+			<div id="trailers" class="button-lg">
+				Trailers
+			</div>
+			<div id="listentothis" class="button-lg">
+				Music
+			</div>
 
-// getFollowerCount();
+Favourites
+	videos
+		videos
+	mealtimevideos
+		mealtimevideos
+	PoliceChases
+		PoliceChases
+	Useful
+		usefulvids
+	Trailers
+		trailers
+	Music
+		listentothis
+
+	sort
+		week
+
+Suggestions
+	subreddit
+	subreddit
+
+*/
+

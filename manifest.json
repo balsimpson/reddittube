@@ -8,6 +8,7 @@
 		"tabs",
 		"https://*/"
 	],
+	"content_security_policy": "script-src 'self' https://www.youtube.com https://s.ytimg.com; object-src 'self'",
 	"icons": {
 		"16": "reddit_16.png",
 		"48": "reddit_48.png",
