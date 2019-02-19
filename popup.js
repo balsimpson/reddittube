@@ -212,7 +212,7 @@ const getUnwatched = (videoIDs, callback) => {
 	// Get watchedList
 	chrome.storage.sync.get(['watchedList'], (result) => {
 		console.log('Watched List result: ' + JSON.stringify(result));
-		if (result && result.watchedList.length) {
+		if (result && result.watchedList) {
 			watchedList = result.watchedList;
 			console.log('Watched List is ' + JSON.stringify(result.watchedList));
 		} else {
