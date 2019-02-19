@@ -352,9 +352,9 @@ const renderCategories = (data) => {
 
 // getReddit('videos');
 // addClass('#videos', "selected");
-const mainProgram = () => {
+// const mainProgram = () => {
 	// Get VideoIDs
-	getUserFavourites();
+	// getUserFavourites();
 
 	// Show only unwatched
 
@@ -375,6 +375,6 @@ const mainProgram = () => {
 	cleanup db every month end
 	
 	*/
-}
+// }
 
 // getFollowerCount();
