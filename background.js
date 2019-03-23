@@ -1,15 +1,15 @@
 let user_data = {
 	channels: {
-		Videos: ['videos', 'storytellingvideos', 'Best_Of_YouTube'],
-		Art: ['artdocumentaries', 'artisanvideos'],
-		Mealtime: ['mealtimevideos'],
-		Learn: ['usefulvids', 'EducativeVideos', 'spacevideos', 'CuriousVideos', 'CookingVideos'],
-		Trailers: ['trailers', 'CultTrailers', 'CampCult'],
-		Music: ['listentothis', 'MusicVideosOnYouTube', 'fullconcertonyoutube', 'FullAlbumsOnYouTube'],
-		Movies: ['fullmoviesonyoutube', 'FullWesternsOnYoutube'],
-		Obscure: ['unknownvideos', 'NotTimAndEric', 'youtubehaiku', 'DeepIntoYouTube', 'InterdimensionalCable', 'CommercialCuts', 'AwfulCommercials', 'ObscureMedia']
+		videos: ['videos', 'storytellingvideos', 'Best_Of_YouTube'],
+		art: ['artdocumentaries', 'artisanvideos'],
+		mealtime: ['mealtimevideos'],
+		learn: ['usefulvids', 'EducativeVideos', 'spacevideos', 'CuriousVideos', 'CookingVideos'],
+		trailers: ['trailers', 'CultTrailers', 'CampCult'],
+		music: ['listentothis', 'MusicVideosOnYouTube', 'fullconcertonyoutube', 'FullAlbumsOnYouTube'],
+		movies: ['fullmoviesonyoutube', 'FullWesternsOnYoutube'],
+		obscure: ['unknownvideos', 'NotTimAndEric', 'youtubehaiku', 'DeepIntoYouTube', 'InterdimensionalCable', 'CommercialCuts', 'AwfulCommercials', 'ObscureMedia']
 	},
-	current: 'Videos',
+	current: 'videos',
 	sort: 'day',
 	watched_list: []
 }

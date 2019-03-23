@@ -32,6 +32,12 @@
 			background: var(--dark);
 		}
 
+		button {
+			padding: 0;
+			margin: 0;
+			border: 0;
+		}
+
 		.wrapper {
 			background-color: black;
 		}
@@ -161,7 +167,7 @@
 			height: 1.4em;
 			overflow: visible;
 			vertical-align: -.125em;
-			color: antiquewhite;
+			color: white;
 		}
 
 		.svg-inline--fa.fa-w-14 {
@@ -307,11 +313,11 @@
 		}
 
 		/* Toggle this class when clicking on the popup container (hide and show the popup) */
-		.popup .show {
+		/* .popup .show {
 			visibility: visible;
 			-webkit-animation: fadeIn 1s;
 			animation: fadeIn 1s
-		}
+		} */
 
 		/* Add animation (fade in the popup) */
 		@-webkit-keyframes fadeIn {
@@ -531,6 +537,7 @@
 			font-size: 12px;
 			height: 20px;
 			padding: 1px 4px;
+			align-items: center;
 			cursor: pointer;
 			transition: 2s;
 		}
@@ -544,8 +551,8 @@
 		.btn-plus {
 			display: block;
 			width: 20px;
-			height: 22px;
-			background-color: #999;
+			height: 21px;
+			background-color: var(--red);
 			text-align: center;
 			padding: 3px;
 		}
@@ -631,6 +638,73 @@
 			color: white;
 			cursor: pointer;
 		}
+
+		.toast {
+			visibility: hidden;
+			display: flex;
+			color: aqua;
+			position: absolute;
+			top: 20px;
+			left: 50%;
+			transform: translateX(-50%);
+			background-color: cadetblue;
+			padding: 6px 20px 8px;
+			align-items: center;
+			z-index: 200;
+		}
+
+		.toast.show {
+			visibility: visible;
+			/* Show the snackbar */
+			/* Add animation: Take 0.5 seconds to fade in and out the snackbar. 
+  However, delay the fade out process for 2.5 seconds */
+			/* -webkit-animation: movein 0.5s, moveout 0.5s 2.5s; */
+			animation: movein 0.5s, moveout 0.5s 5s;
+			/* animation: movein 0.5s; */
+		}
+
+		@keyframes movein {
+			from {
+				top: 0;
+				opacity: 0;
+			}
+
+			to {
+				top: 20px;
+				opacity: 1;
+			}
+		}
+		
+		@keyframes moveout {
+			from {
+				top: 20px;
+				opacity: 1;
+			}
+
+			to {
+				top: 0;
+				opacity: 0;
+			}
+		}
+
+		.icon {
+			color: var(--dark);
+		}
+
+		.toast-txt {
+			margin: 0 5px;
+			text-transform: uppercase;
+		}
+
+		.success {
+			background-color: lightgreen;
+			color: var(--dark);
+		}
+
+		.error {
+			background-color: orange;
+			color: var(--dark);
+		}
 	</style>
 </head>
 
@@ -662,10 +736,13 @@
 				<i class="fas fa-bars"></i>
 			</div>
 			<div class="dropdown-menu-content">
-
 			</div>
 		</div>
-
+		<!-- <div class="toast error"> -->
+		<!-- <i class="fas fa-check-circle icon"></i>  -->
+		<!-- <i class="fas fa-exclamation-triangle icon"></i>  -->
+		<!-- <span class="toast-txt">SOME TEXT ABOUT THE SITUATION I GUESS</span> -->
+		<!-- </div> -->
 
 	</div>
 	<script src="popup.js"></script>

@@ -28,6 +28,8 @@ window.onload = () => {
 	tag.src = "https://www.youtube.com/iframe_api";
 	let firstScriptTag = document.getElementsByTagName('script')[0];
 	firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+	showToast('this is some message', 'success');
 };
 
 // Create YouTube Player
@@ -164,45 +166,55 @@ const menuOptions = async (categories) => {
 		catTitle.id = category;
 		catTitle.innerText = category;
 
-		let addButton = document.createElement('div');
-		addButton.className = 'add-subreddit';
-		// addButton.innerText = 'ADD SUBREDDIT';
+		let addSubreddit = document.createElement('form');
+		addSubreddit.className = 'add-subreddit';
+
+		// let form = document.createElement('form');
 		let inputTxt = document.createElement('input');
 		inputTxt.className = 'input-txt';
 		inputTxt.placeholder = 'Add a subreddit';
-		let plusBtn = document.createElement('span');
+		let plusBtn = document.createElement('button');
 		plusBtn.className = 'btn-plus';
 		plusBtn.innerHTML = '<i class="fas fa-plus">';
-		addButton.appendChild(inputTxt);
-		addButton.appendChild(plusBtn);
+		// form.appendChild(inputTxt);
+		// form.appendChild(plusBtn);
+
+		addSubreddit.appendChild(inputTxt);
+		addSubreddit.appendChild(plusBtn);
+
+		addSubreddit.addEventListener('keypress', (event) => {
+			if (event.keyCode == 13) {
+				event.preventDefault();
+				plusBtn.click();
+			}
+		})
 
 		catHeader.appendChild(catTitle);
-		catHeader.appendChild(addButton);
+		catHeader.appendChild(addSubreddit);
 		// catHeader.appendChild(inputTxt);
 		// catHeader.appendChild(plusBtn);
 
-		let catSubreddits = document.createElement('ul');
-		catSubreddits.className = 'tags';
+		let channel = document.createElement('ul');
+		channel.className = 'tags';
+		channel.id = 'ul-' + category.toLowerCase();
 
-		categories[category].map(cat => {
-			let catSubreddit = document.createElement('li');
-			catSubreddit.className = 'tag';
-			catSubreddit.innerHTML = cat;
+		categories[category].map((subreddit_name, index) => {
+			let subreddit = document.createElement('li');
+			subreddit.className = 'tag';
+			subreddit.innerHTML = subreddit_name;
+			subreddit.setAttribute('data-index', index);
 
-			let deleteBtn = document.createElement('span');
-			deleteBtn.className = 'close';
-			deleteBtn.setAttribute("aria-label", "Close");
-			deleteBtn.innerHTML = '&times;';
-			catSubreddit.appendChild(deleteBtn);
+			let deleteBtn = createDeleteBtn();
+			subreddit.appendChild(deleteBtn);
 
-			deleteBtn.addEventListener('click', e => {
-				console.log('delete subreddit', e.target.offsetParent.textContent);
-			})
-			catSubreddits.appendChild(catSubreddit);
+			// Delete Subreddit Button
+			deleteBtnListener(deleteBtn);
+
+			channel.appendChild(subreddit);
 		});
 
 		catDiv.appendChild(catHeader);
-		catDiv.appendChild(catSubreddits);
+		catDiv.appendChild(channel);
 
 		menuDiv.appendChild(catDiv)
 		console.log('category', category);
@@ -218,37 +230,33 @@ const menuOptions = async (categories) => {
 				catTitle.innerText.trim();
 
 				let renamed = catTitle.innerText.trim();
+				renamed = renamed.toLowerCase();
+
+				// Update userData.current
+				if (userData.current === catTitle.id) {
+					userData.current = renamed;
+				}
 
 				userData.channels[renamed] = userData.channels[catTitle.id];
 				delete userData.channels[catTitle.id];
-				
+
 				updateUserData();
 				console.log(userData.channels);
 			});
 		});
 
-		// Add Subreddit Button
-		addButton.addEventListener('click', e => {
-			console.log('clicked');
-			plusBtn.innerHTML = "display:block";
-		})
-
 		// Add Subreddit Plus Button
 		plusBtn.addEventListener('click', e => {
+			e.preventDefault();
+			plusBtn.innerHTML = '<i class="fas fa-check-circle">';
 			console.log('check subreddit', inputTxt.value);
-			let resp = checkSubreddit(inputTxt.value);
+			let resp = checkSubreddit(inputTxt.value, catTitle);
 			resp.then(data => {
-				console.log('response', data);
-
+				// console.log('response', data);
+				inputTxt.value = '';
+				plusBtn.innerHTML = '<i class="fas fa-plus">';
 			})
 		})
-
-		// Delete Subreddit Button
-		// document.querySelectorAll('.close').forEach(btn => {
-		// 	btn.addEventListener('click', e => {
-		// 		console.log('delete subreddit', e);
-		// 	})
-		// })
 	}
 }
 
@@ -313,7 +321,7 @@ const getVideoIDs = (response) => {
 }
 
 // Check subreddit
-const checkSubreddit = async (subreddit) => {
+const checkSubreddit = async (subreddit, channel) => {
 
 	try {
 		let url = `https://www.reddit.com/r/${subreddit}/top.json?t=week`;
@@ -322,12 +330,57 @@ const checkSubreddit = async (subreddit) => {
 
 		if (video_ids.length > 5) {
 			console.log('results', video_ids.length);
+			console.log('channel', channel);
+			addNewSubreddit(subreddit, channel)
 			return video_ids;
 		} else {
 			console.log('not enough results');
 		}
 	} catch (error) {
 		return error;
+	}
+}
+
+// Add new subreddit to menu options
+const addNewSubreddit = (subreddit, channel) => {
+
+	let _channel = userData.channels[channel.id];
+	let isAlreadyAdded = _channel.includes(subreddit);
+
+	console.log('isAlreadyAdded', isAlreadyAdded);
+
+	// check if subreddit is already added
+	if (isAlreadyAdded) {
+		// toast
+		let message = `${subreddit} already added to ${channel.id} channel`;
+		showToast(message, 'error');
+	} else {
+		let channel_ul = document.querySelector('#ul-' + channel.id.toLowerCase());
+
+		let index = channel_ul.getElementsByTagName("li").length;
+
+		let new_subreddit = document.createElement('li');
+		new_subreddit.className = 'tag';
+		new_subreddit.innerHTML = subreddit;
+		new_subreddit.setAttribute('data-index', index);
+
+		// toast
+		let message = `${subreddit} added to ${channel.id} channel`
+		showToast(message, 'success');
+
+		// Add delete button
+		let deleteBtn = createDeleteBtn();
+		new_subreddit.appendChild(deleteBtn);
+
+		// Delete Subreddit Button
+		deleteBtnListener(deleteBtn);
+
+		channel_ul.appendChild(new_subreddit);
+
+		// update database
+		userData.channels[channel.id].push(subreddit);
+		console.log(userData.channels[channel.id]);
+		updateUserData();
 	}
 }
 
@@ -351,6 +404,77 @@ const getUnwatched = (videos, callback) => {
 	}
 
 	callback(unWatchedList);
+}
+
+// Show toast
+const showToast = (message, status) => {
+	let success_icon = "fas fa-check-circle icon";
+	let error_icon = "fas fa-exclamation-triangle icon";
+
+	let toastDiv = document.createElement('div');
+	toastDiv.classList.add('toast');
+	toastDiv.classList.add(status);
+	toastDiv.classList.add('show');
+
+	// icon
+	let icon = document.createElement('i');
+	if (status === 'success') {
+		icon.className = success_icon;
+	} else {
+		icon.className = error_icon;
+	}
+
+	// toast text
+	let txt = document.createElement('span');
+	txt.className = 'toast-txt';
+	txt.innerText = message;
+
+	toastDiv.appendChild(icon);
+	toastDiv.appendChild(txt);
+
+	// get container
+	let footer = document.querySelector('.footer');
+	footer.appendChild(toastDiv);
+
+	// hide toast
+	setTimeout(() => {
+		toastDiv.classList.remove('show');
+	}, 5500);
+}
+
+function deleteBtnListener(deleteBtn) {
+	deleteBtn.addEventListener('click', e => {
+
+		console.log('index', e.toElement.parentElement.dataset.index);
+		let index = e.toElement.parentElement.dataset.index;
+		let channel = e.toElement.offsetParent.parentElement.id;
+		channel = channel.split('-');
+		channel = channel[1];
+
+		let subreddit = e.target.offsetParent.textContent;
+		subreddit = subreddit.substr(0, subreddit.length - 1);
+		console.log('deleting subreddit', subreddit);
+
+		// toast
+		let message = `${subreddit} has been deleted from ${channel} channel`;
+		showToast(message, 'error');
+
+		// Remove from DOM
+		let ul = document.getElementById("ul-" + channel);
+		ul.removeChild(ul.childNodes[index]);
+		// update userData
+		userData.channels[channel].splice(index, 1);
+
+		updateUserData();
+	});
+}
+
+function createDeleteBtn() {
+	let deleteBtn = document.createElement('span');
+	deleteBtn.className = 'close';
+	deleteBtn.setAttribute("aria-label", "Close");
+	deleteBtn.innerHTML = '&times;';
+	return deleteBtn;
 }
 
 function removeClass(btnClass, classToRemove) {
@@ -426,7 +550,7 @@ const getUserFavourites = async () => {
 		// Save to global variable
 		userData = result.userData;
 		// showLoading(userData.channels[userData.current].join('+'));
-		renderCategories(userData.channels);
+		renderChannels(userData.channels);
 		// timeperiod
 		renderSort(userData.sort);
 		menuOptions(userData.channels);
@@ -434,7 +558,7 @@ const getUserFavourites = async () => {
 	})
 }
 
-const renderCategories = (channels) => {
+const renderChannels = (channels) => {
 	let cat_container = document.querySelector('.categories');
 	for (category in channels) {
 		let cat_btn = document.createElement('div');
