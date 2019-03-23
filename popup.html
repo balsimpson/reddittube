@@ -6,13 +6,16 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<link href="https://fonts.googleapis.com/css?family=Abel|Fjalla+One|Oswald|Staatliches" rel="stylesheet">
+	<script defer src="https://use.fontawesome.com/releases/v5.6.3/js/all.js"
+		integrity="sha384-EIHISlAOj4zgYieurP0SdoiBYfGJKkgWedPHH4jCzpCXLmzVsw1ouK59MuUtP4a1"
+		crossorigin="anonymous"></script>
 	<title>Reddit Tube</title>
 	<style>
 		:root {
-			--red: #EB5528;
+			--red: #EB5757;
 			--yellow: rgb(214, 184, 102);
-			--red-hover: rgb(187, 62, 4);
-			--red-select: rgb(136, 49, 22);
+			--red-hover: #A91717;
+			--red-select: #D33232;
 			--dark: rgb(31, 31, 31);
 			--light: rgb(218, 218, 218);
 			--gray: rgb(148, 148, 148);
@@ -33,37 +36,65 @@
 			background-color: black;
 		}
 
-		.categories {
+		#player {
+			overflow: hidden;
+			background: url(noise.gif) repeat center fixed;
+			background-size: cover;
+			/* height: 390px; */
+			/* width: 640px; */
+		}
+
+		.footer {
 			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
-			grid-gap: 4px;
-			background-color: black;
+			grid-template-columns: 1fr 60px 60px;
+		}
+
+		.categories {
+			display: flex;
+			float: left;
+			/* grid-template-columns: 50px; */
+			/* grid-template-rows: 10px; */
+			/* grid-gap: 4px; */
+			/* background-color: black; */
 			justify-content: center;
 			text-align: center;
-			padding-top: .4em;
-			padding-bottom: .4em;
-			font-size: .8em;
-			font-weight: 200;
+			/* padding-top: .4em; */
+			/* padding-bottom: .4em; */
+			font-size: 10px;
+			/* font-weight: 200; */
 			text-transform: uppercase;
+			overflow-x: scroll;
+			/* width: 100%; */
+			z-index: 2;
+		}
+
+		.categories::-webkit-scrollbar {
+			display: none;
 		}
 
 		.timeperiod {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
-			grid-gap: 2px;
+			display: block;
+			/* grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); */
+			/* grid-gap: 2px; */
 			/* background-color: aquamarine; */
 			justify-content: center;
 			text-align: center;
 			text-transform: uppercase;
 			/* padding: .2em; */
+			color: antiquewhite;
+			line-height: 1;
 		}
 
-		.video {
+		.menu {
+			text-align: center;
+		}
+
+		/* .video {
 			width: 560px;
 			height: 315px;
 			color: var(--light);
-		}
-		
+		} */
+
 		.video-frame {
 			animation: fadeIn 4s forwards;
 		}
@@ -96,7 +127,7 @@
 
 		.button-lg {
 			display: flex;
-			padding: .4em;
+			padding: .4em .8em;
 			background-color: var(--dark);
 			cursor: pointer;
 			font-size: 1.2em;
@@ -108,8 +139,7 @@
 		}
 
 		.button-lg:hover {
-			background-color: var(--red-hover);
-			color: whitesmoke;
+			color: var(--red);
 		}
 
 		.btn-sort {
@@ -125,20 +155,29 @@
 			color: whitesmoke;
 		}
 
+		.svg-inline--fa {
+			display: inline-block;
+			font-size: inherit;
+			height: 1.4em;
+			overflow: visible;
+			vertical-align: -.125em;
+			color: antiquewhite;
+		}
+
+		.svg-inline--fa.fa-w-14 {
+			width: 1em;
+		}
+
+		.btn-menu {
+			background-color: var(--red-hover);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
 		.selected {
-			background-color: var(--red-select);
-			color: whitesmoke;
-		}
-
-		a {
-			text-decoration: none;
-			color: rgb(255, 208, 0);
-
-		}
-
-		a:hover {
-			color: white;
-			font-weight: 700;
+			/* background-color: var(--red-select); */
+			color: var(--red);
 		}
 
 		/* Loading Spinner */
@@ -214,12 +253,12 @@
 		}
 
 		#add-modal {
-			display: block;
+			display: none;
 			position: absolute;
 			padding: 1em;
 			height: 100%;
 			right: 0;
-			width: 160px;
+			width: 100%;
 			top: 0;
 			color: whitesmoke;
 			background-color: rgba(0, 0, 0, 0.5);
@@ -294,62 +333,340 @@
 				opacity: 1;
 			}
 		}
+
+		/* DROPDOWN - START */
+		/* Style The Dropdown Button */
+		.dropbtn {
+			/* display: grid; */
+			/* grid-template-columns: 1fr 1fr; */
+			background-color: rgb(224, 224, 224);
+			color: var(--accent-1);
+			padding: 8px;
+			/* margin-left: 10px; */
+			/* font-size: 16px; */
+			justify-content: center;
+			align-items: center;
+			border: none;
+			cursor: pointer;
+			transition: .4s;
+			line-height: 1;
+			text-align: center;
+		}
+
+		.dropbtn span {
+			/* padding-right: 4px; */
+			display: block;
+		}
+
+		/* The container <div> - needed to position the dropdown content */
+		.dropdown {
+			/* position: relative; */
+			display: inline-block;
+			margin: auto 0;
+			transition: .4s;
+			z-index: 2;
+		}
+
+		/* Dropdown Content (Hidden by Default) */
+		.dropdown-content {
+			display: none;
+			position: absolute;
+			background-color: rgba(0, 0, 0, 0.9);
+			/* min-width: 60px; */
+			box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+			z-index: 1;
+			transition: .4s;
+			right: 61px;
+			bottom: 36px;
+			text-align: center;
+			cursor: pointer;
+		}
+
+		/* Links inside the dropdown */
+		.dropdown-content span {
+			background-color: var(--accent-1);
+			color: whitesmoke;
+			font-family: 'Oswald', sans-serif;
+			padding: 6px 8px;
+			text-decoration: none;
+			display: block;
+			cursor: pointer;
+		}
+
+		/* Change color of dropdown links on hover */
+		.dropdown-content span:hover {
+			color: var(--red);
+		}
+
+		/* Show the dropdown menu on hover */
+		.dropdown:hover .dropdown-content {
+			display: block;
+			transition: .4s;
+		}
+
+		/* Change the background color of the dropdown button when the dropdown content is shown */
+		.dropdown:hover .dropbtn {
+			background-color: var(--accent-1);
+			/* padding: 16px; */
+			color: whitesmoke;
+			transition: .4s;
+		}
+
+		/* DROPDOWN - END */
+
+		/* DROPDOWN - MENU - START */
+		/* Style The Dropdown Button */
+		.dropbtn-menu {
+			/* display: grid; */
+			/* grid-template-columns: 1fr 1fr; */
+			/* background-color: rgb(224, 224, 224); */
+			color: var(--accent-1);
+			padding: 8px;
+			margin: 0;
+			font-size: 14px;
+			justify-content: center;
+			align-items: center;
+			border: none;
+			cursor: pointer;
+			transition: .4s;
+			line-height: 1;
+			text-align: center;
+		}
+
+		.dropbtn-menu span {
+			/* padding-right: 4px; */
+			display: block;
+		}
+
+		/* The container <div> - needed to position the dropdown content */
+		.dropdown-menu {
+			/* position: relative; */
+			display: inline-block;
+			margin: auto 0;
+			transition: .4s;
+		}
+
+		/* Dropdown Content (Hidden by Default) */
+		.dropdown-menu-content {
+			display: block;
+			position: absolute;
+			background-color: rgba(0, 0, 0, 0.9);
+			/* min-width: 60px; */
+			box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+			z-index: 1;
+			transition: .6s;
+			height: 0%;
+			width: 100%;
+			left: 0;
+			bottom: -136px;
+			margin-top: 20px;
+			padding: 40px;
+			font-size: 15px;
+			/* text-align: center; */
+			/* align-items: center; */
+			/* justify-content: center; */
+			overflow-x: scroll;
+		}
+
+		/* Links inside the dropdown */
+		.dropdown-menu-content a {
+			background-color: var(--accent-1);
+			color: whitesmoke;
+			font-family: 'Oswald', sans-serif;
+			padding: 6px 8px;
+			text-decoration: none;
+			display: block;
+		}
+
+		/* Change color of dropdown links on hover */
+		.dropdown-menu-content a:hover {
+			background-color: var(--darker-gray);
+		}
+
+		/* Show the dropdown menu on hover */
+		.dropdown-menu:hover .dropdown-menu-content {
+			display: block;
+			height: 90%;
+			width: 100%;
+			transition: .4s;
+			bottom: 36px;
+			/* padding: 40px; */
+		}
+
+		/* Change the background color of the dropdown button when the dropdown content is shown */
+		.dropdown-menu:hover .dropbtn-menu {
+			background-color: var(--accent-1);
+			/* padding: 16px; */
+			color: whitesmoke;
+			transition: .4s;
+		}
+
+		/* DROPDOWN - END */
+
+		.menu-category {
+			color: #fff;
+			text-transform: uppercase;
+			display: grid;
+			grid-template-columns: 1fr;
+			padding: 10px;
+		}
+
+		.menu-category:hover {
+			background-color: rgba(153, 153, 153, 0.356);
+		}
+
+		.cat-header {
+			display: flex;
+			/* margin-bottom: 8px; */
+		}
+
+		.cat-title {
+			margin-bottom: 8px;
+		}
+
+		.add-subreddit {
+			display: none;
+			margin: 0 10px;
+			/* background-color: brown; */
+			font-size: 12px;
+			height: 20px;
+			padding: 1px 4px;
+			cursor: pointer;
+			transition: 2s;
+		}
+
+		.input-txt {
+			display: flex;
+			width: 140px;
+			height: 22px;
+		}
+
+		.btn-plus {
+			display: block;
+			width: 20px;
+			height: 22px;
+			background-color: #999;
+			text-align: center;
+			padding: 3px;
+		}
+
+		.menu-category:hover .add-subreddit {
+			display: flex;
+		}
+
+		.cat-subreddits {
+			display: grid;
+			grid-gap: 10px;
+			grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+		}
+
+		.tags {
+			list-style: none;
+			margin: 0;
+			overflow: hidden;
+			padding: 0;
+		}
+
+		.tags li {
+			float: left;
+		}
+
+		.tag {
+			background: #eee;
+			border-radius: 3px;
+			color: #999;
+			display: inline-block;
+			height: 26px;
+			line-height: 26px;
+			padding: 0 10px 0 10px;
+			position: relative;
+			margin: 0 10px 10px 0;
+			text-decoration: none;
+		}
+
+		/* .tag::before {
+			background: #fff;
+			border-radius: 10px;
+			box-shadow: inset 0 1px rgba(0, 0, 0, 0.25);
+			content: '';
+			height: 6px;
+			left: 10px;
+			position: absolute;
+			width: 6px;
+			top: 10px;
+		}
+
+		.tag::after {
+			background: #fff;
+			border-bottom: 13px solid transparent;
+			border-left: 10px solid #eee;
+			border-top: 13px solid transparent;
+			content: 'X';
+			position: absolute;
+			right: 0;
+			top: 0;
+		}
+		*/
+
+		.tag:hover {
+			background-color: crimson;
+			color: white;
+		}
+
+		.close {
+			position: absolute;
+			padding-left: 4px;
+			color: black;
+			border-radius: 50%;
+			/* background-color: brown; */
+			height: 20px;
+			width: 20px;
+			align-items: center;
+			justify-content: center;
+			top: -8px;
+			right: -8px;
+		}
+
+		.close:hover {
+			color: white;
+			cursor: pointer;
+		}
 	</style>
 </head>
 
 <body>
 	<div class="wrapper">
+
 		<div id="player" class="video">
-			<div class="lds-ellipsis">
-				<div></div>
-				<div></div>
-				<div></div>
-				<div></div>
-			</div>
 		</div>
 
 	</div>
 	<div class="footer">
 		<div class="categories">
-			<!-- <div id="videos" class="button-lg">
-				Videos
-			</div>
-			<div id="ArtisanVideos" class="button-lg">
-				Artisan
-			</div>
-			<div id="mealtimevideos" class="button-lg">
-				Mealtime
-			</div>
-			<div id="PoliceChases" class="button-lg">
-				Police Chases
-			</div>
-			<div id="usefulvids" class="button-lg">
-				Useful
-			</div>
-			<div id="trailers" class="button-lg">
-				Trailers
-			</div>
-			<div id="listentothis" class="button-lg">
-				Music
-			</div> -->
 		</div>
-		<div class="timeperiod">
-			<div id="day" class="btn-sort">day</div>
-			<div id="week" class="btn-sort">week</div>
-			<div id="month" class="btn-sort">month</div>
-			<div id="year" class="btn-sort">year</div>
-			<div id="all" class="btn-sort">all</div>
-		</div>
-		<!-- <div id="add-modal">
-			<div class="header">
-				<h2>Add Subreddit</h2>
-				<p>
-					Enter a subreddit to add it to your list.
-				</p>
+		<div class="dropdown">
+			<div class="dropbtn">
+				<span id="timeperiod">WEEKLY</span><span style="font-size: 8px">TOP VIDEOS</span>
+				<!-- <i class="fas fa-angle-up"></i> -->
 			</div>
-			<input type="text">
-			<button class="add">ADD</button>
-		</div> -->
+			<div class="dropdown-content timeperiod">
+				<span>DAILY</span>
+				<span>WEEKLY</span>
+				<span>MONTHLY</span>
+				<span>YEARLY</span>
+				<span>ALL TIME</span>
+			</div>
+		</div>
+		<div class="dropdown-menu">
+			<div class="dropbtn-menu">
+				<i class="fas fa-bars"></i>
+			</div>
+			<div class="dropdown-menu-content">
+
+			</div>
+		</div>
+
+
 	</div>
 	<script src="popup.js"></script>
 </body>
