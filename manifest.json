@@ -2,13 +2,13 @@
 	"manifest_version": 2,
 	"name": "Reddit Tube",
 	"description": "The Top YouTube Videos from Reddit.",
-	"version": "0.1",
+	"version": "1.1",
 	"permissions": [
 		"storage",
 		"tabs",
 		"https://*/"
 	],
-	"content_security_policy": "script-src 'self' https://www.youtube.com https://s.ytimg.com; object-src 'self'",
+	"content_security_policy": "script-src 'self' https://www.youtube.com https://s.ytimg.com https://use.fontawesome.com https://fontawesome.com https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://fonts.googleapis.com; object-src 'self'",
 	"icons": {
 		"16": "reddit_16.png",
 		"48": "reddit_48.png",
@@ -17,5 +17,10 @@
 	"browser_action": {
 		"default_action": "",
 		"default_popup": "popup.html"
+	},
+	"background": {
+		"scripts": [
+			"background.js"
+		]
 	}
 }
