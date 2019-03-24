@@ -1,12 +1,12 @@
 let user_data = {
 	channels: {
 		videos: ['videos', 'storytellingvideos', 'Best_Of_YouTube'],
-		art: ['artdocumentaries', 'artisanvideos'],
-		mealtime: ['mealtimevideos'],
+		artisans: ['artdocumentaries', 'artisanvideos'],
+		mealtime: ['mealtimevideos', 'documentaries'],
 		learn: ['usefulvids', 'EducativeVideos', 'spacevideos', 'CuriousVideos', 'CookingVideos'],
-		trailers: ['trailers', 'CultTrailers', 'CampCult'],
+		trailers: ['trailers', 'CultTrailers'],
 		music: ['listentothis', 'MusicVideosOnYouTube', 'fullconcertonyoutube', 'FullAlbumsOnYouTube'],
-		movies: ['fullmoviesonyoutube', 'FullWesternsOnYoutube'],
+		movies: ['fullmoviesonyoutube', 'FullWesternsOnYoutube', 'CampCult'],
 		obscure: ['unknownvideos', 'NotTimAndEric', 'youtubehaiku', 'DeepIntoYouTube', 'InterdimensionalCable', 'CommercialCuts', 'AwfulCommercials', 'ObscureMedia']
 	},
 	current: 'videos',

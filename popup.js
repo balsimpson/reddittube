@@ -16,11 +16,14 @@ const LOADING_HTML = `
 
 // Global variable to save userData
 let userData = {};
-
 // Global Variable to save current playlist
 let currentPlaylist = [];
+// Global Variable to save current playlist info
+let currentPlaylistInfo = [];
 // Video Ids of watched videos
 let watchedList = [];
+// Should console log?
+let shouldLog = true;
 
 window.onload = () => {
 	// loads the IFrame Player API code asynchronously
@@ -29,22 +32,28 @@ window.onload = () => {
 	let firstScriptTag = document.getElementsByTagName('script')[0];
 	firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-	showToast('this is some message', 'success');
+	// showToast('this is some message', 'success');
 };
+
+// Console logger
+const log = (label, data) => {
+	if (shouldLog) {
+		console.log(label, data);
+	}
+}
 
 // Create YouTube Player
 let player;
 function onYouTubeIframeAPIReady() {
 	player = new YT.Player('player', {
-		height: '390',
-		width: '640',
+		// height: '360',
+		// width: '640',
 		playerVars: {
 			'autoplay': 1,
 			'controls': 1,
-			// 'enablejsapi': 1,
-			'modestbranding': 1
+			'enablejsapi': 1
+			// 'modestbranding': 1
 		},
-		// autoplay: 1,
 		events: {
 			'onReady': getUserFavourites,
 			'onStateChange': onPlayerStateChange
@@ -57,7 +66,7 @@ function onPlayerStateChange(event) {
 
 	let playlist = event.target.getPlaylist();
 	let index = event.target.getPlaylistIndex();
-	console.log(playlist, index);
+	// console.log(playlist, index);
 
 	// let video_id = 
 	if (player_state === 0) {
@@ -70,16 +79,17 @@ function onPlayerStateChange(event) {
 		}
 	}
 	if (player_state === -1) {
-		console.log('unstarted');
+		// console.log('unstarted');
 	}
 	if (player_state === 1) {
-		console.log('playing ' + index++);
+		console.log('playing ' + currentPlaylistInfo[index].title);
+		showVideoInfo(currentPlaylistInfo[index]);
 	}
 	if (player_state === 2) {
-		console.log('playing ' + index++);
+		// console.log('cued ' + index++);
 	}
 	if (player_state === 3) {
-		console.log('next ' + index);
+		// console.log('next ' + index);
 		if (playlist[index - 1]) {
 			userData.watched_list.push(playlist[index - 1]);
 			// Save to storage
@@ -87,7 +97,7 @@ function onPlayerStateChange(event) {
 		}
 	}
 	if (player_state === 5) {
-		console.log('cued');
+		// console.log('cued');
 	}
 }
 
@@ -119,11 +129,10 @@ const getReddit = async () => {
 		let category = userData.channels[userData.current].join('+');
 		let timeperiod = userData.sort;
 		let url = `https://www.reddit.com/r/${category}/top.json?t=${timeperiod.toLowerCase()}`;
-		console.log(`Getting Posts from: ${JSON.stringify(url, null, 2)}`);
-
 		let feed = await xhttpCall('GET', url);
-		let video_ids = getVideoIDs(JSON.parse(feed.responseText));
-		getUnwatched(video_ids, loadPLayer);
+		log('feed', JSON.parse(feed.response));
+		let video_info = getVideoInfo(JSON.parse(feed.responseText));
+		getUnwatched(video_info, loadPLayer);
 
 	} catch (error) {
 		console.log(error);
@@ -131,9 +140,10 @@ const getReddit = async () => {
 }
 
 // load player
-function loadPLayer(playlist) {
+function loadPLayer(playlist, playlist_info) {
 	currentPlaylist = playlist;
-	console.log('currentPlaylist', playlist);
+	currentPlaylistInfo = playlist_info;
+	// console.log('currentPlaylist', playlist);
 	player.loadPlaylist(playlist);
 }
 
@@ -150,8 +160,20 @@ const getFollowerCount = () => {
 
 // Show Menu options
 const menuOptions = async (categories) => {
-	console.log('category', categories);
+	// console.log('category', categories);
 	let menuDiv = document.querySelector('.dropdown-menu-content');
+	menuDiv.innerHTML = `
+		<div class="help">
+			<div class="help-text">
+				Double-click on a channel name to rename it.
+				<div class="help-text-bar"></div>
+			</div>
+			<div class="reset-btn">RESET</div>
+		</div>
+	`;
+
+	// Reset Button Listener
+	resetButtonListener();
 
 	for (const category in categories) {
 
@@ -175,7 +197,7 @@ const menuOptions = async (categories) => {
 		inputTxt.placeholder = 'Add a subreddit';
 		let plusBtn = document.createElement('button');
 		plusBtn.className = 'btn-plus';
-		plusBtn.innerHTML = '<i class="fas fa-plus">';
+		plusBtn.innerHTML = '<i class="fas fa-plus"></i>';
 		// form.appendChild(inputTxt);
 		// form.appendChild(plusBtn);
 
@@ -217,45 +239,43 @@ const menuOptions = async (categories) => {
 		catDiv.appendChild(channel);
 
 		menuDiv.appendChild(catDiv)
-		console.log('category', category);
+		// console.log('category', category);
 
 		// Rename channels
 		catTitle.addEventListener("dblclick", e => {
 			console.log('double-clicked');
 			catTitle.contentEditable = true;
 			catTitle.focus();
-
-			catTitle.addEventListener("focusout", e => {
-				catTitle.contentEditable = false;
-				catTitle.innerText.trim();
-
-				let renamed = catTitle.innerText.trim();
-				renamed = renamed.toLowerCase();
-
-				// Update userData.current
-				if (userData.current === catTitle.id) {
-					userData.current = renamed;
-				}
-
-				userData.channels[renamed] = userData.channels[catTitle.id];
-				delete userData.channels[catTitle.id];
-
-				updateUserData();
-				console.log(userData.channels);
-			});
+			channelRenameListener(catTitle);
 		});
+
+		// Listen for submit
+		catTitle.addEventListener('keypress', (event) => {
+			if (event.keyCode == 13) {
+				console.log(event);
+
+				event.preventDefault();
+				catTitle.blur();
+			}
+		})
 
 		// Add Subreddit Plus Button
 		plusBtn.addEventListener('click', e => {
 			e.preventDefault();
-			plusBtn.innerHTML = '<i class="fas fa-check-circle">';
-			console.log('check subreddit', inputTxt.value);
-			let resp = checkSubreddit(inputTxt.value, catTitle);
-			resp.then(data => {
-				// console.log('response', data);
-				inputTxt.value = '';
-				plusBtn.innerHTML = '<i class="fas fa-plus">';
-			})
+
+			// If there is text
+			if (inputTxt.value) {
+				plusBtn.innerHTML = '<i class="fas fa-check-circle">';
+				console.log('check subreddit', inputTxt.value);
+				let resp = checkSubreddit(inputTxt.value, catTitle);
+				resp.then(data => {
+					// console.log('response', data);
+					inputTxt.value = '';
+					plusBtn.innerHTML = '<i class="fas fa-plus">';
+				});
+			} else {
+				showToast('Enter a subreddit name!', 'error')
+			}
 		})
 	}
 }
@@ -295,21 +315,23 @@ document.querySelector('.timeperiod').addEventListener('click', e => {
 })
 
 // get an array of video ids
-const getVideoIDs = (response) => {
+const getVideoInfo = (response) => {
 	try {
 		let feed = response.data.children;
-		let video_ids = [];
+		let video_info = [];
 		for (let i = 0; i < feed.length; i++) {
 			if (feed[i].data.domain == 'youtube.com' || feed[i].data.domain == 'youtu.be') {
 				let id = YouTubeGetID(feed[i].data.url);
 				let title = YouTubeGetID(feed[i].data.title);
-				video_ids.push({
+				video_info.push({
 					title: title,
+					subreddit: feed[i].data.subreddit,
+					upvotes: feed[i].data.score,
 					id: id
 				});
 			}
 		}
-		return video_ids;
+		return video_info;
 	} catch (error) {
 		return error;
 	}
@@ -320,19 +342,49 @@ const getVideoIDs = (response) => {
 	}
 }
 
+// Remove watched videos
+const getUnwatched = (videos, callback) => {
+
+	let unWatchedList = [];
+	let unWatchedInfo = [];
+	let watchedStatus = false;
+
+	// Get watchedList
+	// console.log('Watched List is ' + JSON.stringify(userData.watched_list));
+	let watchedList = userData.watched_list;
+
+	for (const key in videos) {
+		let id = videos[key].id;
+		let info = {
+			title: videos[key].title,
+			subreddit: videos[key].subreddit,
+			upvotes: videos[key].upvotes
+		};
+		watchedStatus = watchedList.includes(id);
+
+		if (!watchedStatus) {
+			unWatchedList.push(id);
+			unWatchedInfo.push(info);
+		}
+	}
+
+	log('unWatchedList', unWatchedList);
+	callback(unWatchedList, unWatchedInfo);
+}
+
 // Check subreddit
 const checkSubreddit = async (subreddit, channel) => {
 
 	try {
 		let url = `https://www.reddit.com/r/${subreddit}/top.json?t=week`;
 		let results = await xhttpCall('GET', url);
-		let video_ids = getVideoIDs(JSON.parse(results.responseText));
+		let video_info = getVideoInfo(JSON.parse(results.responseText));
 
-		if (video_ids.length > 5) {
-			console.log('results', video_ids.length);
+		if (video_info.length > 5) {
+			console.log('results', video_info.length);
 			console.log('channel', channel);
 			addNewSubreddit(subreddit, channel)
-			return video_ids;
+			return video_info;
 		} else {
 			console.log('not enough results');
 		}
@@ -384,28 +436,6 @@ const addNewSubreddit = (subreddit, channel) => {
 	}
 }
 
-// Remove watched videos
-const getUnwatched = (videos, callback) => {
-
-	let unWatchedList = [];
-	let watchedStatus = false;
-
-	// Get watchedList
-	console.log('Watched List is ' + JSON.stringify(userData.watched_list));
-	let watchedList = userData.watched_list;
-
-	for (const key in videos) {
-		let id = videos[key].id;
-		watchedStatus = watchedList.includes(id);
-
-		if (!watchedStatus) {
-			unWatchedList.push(id);
-		}
-	}
-
-	callback(unWatchedList);
-}
-
 // Show toast
 const showToast = (message, status) => {
 	let success_icon = "fas fa-check-circle icon";
@@ -440,6 +470,110 @@ const showToast = (message, status) => {
 	setTimeout(() => {
 		toastDiv.classList.remove('show');
 	}, 5500);
+}
+
+// Show Video Info
+const showVideoInfo = (info) => {
+	console.log('showing info');
+
+	let html_txt = `
+	<div class="video-title">
+		${info.title}
+	</div>
+	<div class="video-details">
+		<div class="video-subreddit">
+		${info.subreddit}
+		</div>
+		<div class="video-upvotes">
+			<i class="fas fa-arrow-alt-circle-up"></i>
+			<span>${info.upvotes}</span>
+		</div>
+	</div>
+	`
+	let video_info = document.querySelector('.video-info');
+	video_info.innerHTML = html_txt;
+	// console.log('video_info', video_info);
+	video_info.classList.toggle('show-info');
+
+	let timeout = setTimeout(() => {
+		video_info.classList.toggle('show-info');
+	}, 4000);
+
+	// video_info.addEventListener('mouseover', event => {
+	// 	clearTimeout(timeout);
+	// 	// removeHandler();
+	// });
+}
+
+document.querySelector('.channel-viewer').addEventListener('mouseout', e => {
+	// console.log(e);
+	document.querySelector('.dark-veil').classList.add('show');;
+});
+
+document.querySelector('.channel-viewer').addEventListener('mouseover', e => {
+	// console.log(e);
+	document.querySelector('.dark-veil').classList.remove('show');;
+});
+
+// Switch themes
+const switchThemes = () => {
+	if (document.documentElement.hasAttribute('theme')) {
+		document.documentElement.removeAttribute('theme');
+	}
+	else {
+		document.documentElement.setAttribute('theme', 'dark');
+	}
+}
+
+function resetButtonListener() {
+	document.querySelector('.reset-btn').addEventListener('click', e => {
+		console.log('reset-event', event);
+		let user_data = {
+			channels: {
+				videos: ['videos', 'storytellingvideos', 'Best_Of_YouTube'],
+				artisans: ['artdocumentaries', 'artisanvideos'],
+				mealtime: ['mealtimevideos', 'documentaries'],
+				learn: ['usefulvids', 'EducativeVideos', 'spacevideos', 'CuriousVideos', 'CookingVideos'],
+				trailers: ['trailers', 'CultTrailers'],
+				music: ['listentothis', 'MusicVideosOnYouTube', 'fullconcertonyoutube', 'FullAlbumsOnYouTube'],
+				movies: ['fullmoviesonyoutube', 'FullWesternsOnYoutube', 'CampCult'],
+				obscure: ['unknownvideos', 'NotTimAndEric', 'youtubehaiku', 'DeepIntoYouTube', 'InterdimensionalCable', 'CommercialCuts', 'AwfulCommercials', 'ObscureMedia']
+			},
+			current: 'videos',
+			sort: 'day',
+			watched_list: []
+		};
+		userData = user_data;
+		chrome.storage.local.set({ userData: user_data }, (result) => {
+			console.log('Reset', result);
+			menuOptions(userData.channels);
+			renderChannels(userData.channels);
+		});
+	});
+}
+
+function channelRenameListener(catTitle) {
+	catTitle.addEventListener("focusout", e => {
+		catTitle.contentEditable = false;
+		catTitle.innerText.trim();
+		let renamed = catTitle.innerText.trim();
+		renamed = renamed.toLowerCase();
+		console.log('renamed', renamed);
+		if (renamed !== catTitle.id) {
+
+			// change channel name
+			document.querySelector(`#${catTitle.id}`).innerText = renamed;
+
+			// Update userData.current
+			if (userData.current === catTitle.id) {
+				userData.current = renamed;
+			}
+			userData.channels[renamed] = userData.channels[catTitle.id];
+			delete userData.channels[catTitle.id];
+			updateUserData();
+		}
+		console.log(userData.channels);
+	});
 }
 
 function deleteBtnListener(deleteBtn) {
@@ -536,7 +670,7 @@ const getUserData = async () => {
 
 const updateUserData = () => {
 	chrome.storage.local.set({ userData: userData }, (result) => {
-		console.log('Set UserData: ', userData);
+		// console.log('Set UserData: ', userData);
 		// return result;
 	});
 }
@@ -546,7 +680,7 @@ const getUserFavourites = async () => {
 	// showLoading();
 	// Get user data from local storage
 	chrome.storage.local.get(['userData'], (result) => {
-		console.log('Got UserData: ', result.userData);
+		// console.log('Got UserData: ', result.userData);
 		// Save to global variable
 		userData = result.userData;
 		// showLoading(userData.channels[userData.current].join('+'));
@@ -560,6 +694,8 @@ const getUserFavourites = async () => {
 
 const renderChannels = (channels) => {
 	let cat_container = document.querySelector('.categories');
+	cat_container.innerHTML = '';
+	
 	for (category in channels) {
 		let cat_btn = document.createElement('div');
 		let subreddits = channels[category].join('+');
