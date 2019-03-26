@@ -545,6 +545,8 @@ document.querySelector('.channel-viewer').addEventListener('mouseout', e => {
 	let video_info_div_left_position = offset(video_info_div);
 	let video_info_div_width = video_info_div.offsetWidth;
 
+	// .addEventListener("transitionend", myFunction);
+
 	// console.log('offset left', video_info_div_left_position);
 	// console.log('width', video_info_div_width);
 	
@@ -756,18 +758,32 @@ const renderChannels = (channels) => {
 
 			let category = e.target.dataset.subreddit;
 			e.target.classList.add('selected');
+			e.target.classList.toggle('clicked');
 
-			// show loading
-			showLoading(category);
+			// Remove clicked class
+			setTimeout(() => {
+				e.target.classList.remove('clicked');
+			}, 1000);
+
+			// // show loading
+			// showLoading(category);
 
 			userData.current = e.target.id;
 			updateUserData(userData);
 			getReddit(category);
-			// e.target.parentNode.classList.add("selected");
-		})
+		});
+
+		
 		cat_container.appendChild(cat_btn);
+		cat_btn.style.display = 'flex';
 	}
 	document.getElementById(userData.current).classList.add('selected');
+}
+
+function animationDone(e) {
+	// cat_btn.addEventListener("transitionend", animationDone);
+	console.log('animation completed', e.target);
+	
 }
 
 const renderSort = (timeperiod) => {

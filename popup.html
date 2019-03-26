@@ -123,7 +123,7 @@
 				opacity: 0;
 			}
 		}
-		
+
 		@keyframes fadeOut {
 			from {
 				opacity: 1;
@@ -139,7 +139,8 @@
 		}
 
 		.button-lg {
-			display: flex;
+			/* display: flex; */
+			display: none;
 			padding: .4em .8em;
 			background-color: var(--dark);
 			cursor: pointer;
@@ -149,6 +150,26 @@
 			color: var(--gray);
 			align-items: center;
 			justify-content: center;
+			animation: fadeIn 1s linear;
+		}
+
+		.clicked {
+			animation: clickripple .4s;
+		}
+
+		@keyframes clickripple {
+			0% {
+				background-color: var(--dark);
+			}
+
+			50% {
+				background-color: var(--red-hover);
+				color: var(--light);
+			}
+
+			100% {
+				background-color: var(--dark);
+			}
 		}
 
 		.button-lg:hover {
@@ -823,7 +844,7 @@
 			height: 100%;
 			border-top-right-radius: 4px;
 			border-bottom-right-radius: 4px;
-			background-color:var(--red);
+			background-color: var(--red);
 			opacity: 1;
 		}
 
@@ -848,7 +869,7 @@
 			color: var(--gray);
 			display: flex;
 		}
-		
+
 		.video-details a {
 			color: var(--gray);
 		}
@@ -872,18 +893,6 @@
 <body>
 	<div class="channel-viewer">
 		<div class="video-info">
-			<!-- <div class="video-title">
-				THIS IS OME INFO ABOUT IT
-			</div>
-			<div class="video-details">
-				<div class="video-subreddit">
-					ODDLYSATISFYING
-				</div>
-				<div class="video-upvotes">
-					<i class="fas fa-arrow-alt-circle-up"></i>
-					<span>12343232</span>
-				</div>
-			</div> -->
 		</div>
 		<div class="wrapper">
 			<div id="player" class="video">
@@ -894,7 +903,8 @@
 			</div>
 			<div class="dropdown">
 				<div class="dropbtn">
-					<span id="timeperiod"></span><span style="font-size: 8px">TOP VIDEOS</span>
+					<span id="timeperiod" style="height: 12px;"></span>
+					<span style="font-size: 8px">TOP VIDEOS</span>
 					<!-- <i class="fas fa-angle-up"></i> -->
 				</div>
 				<div class="dropdown-content timeperiod">
@@ -921,7 +931,7 @@
 			</div>
 			<div class="dark-veil"></div>
 		</div>
-		
+
 	</div>
 	<script src="popup.js"></script>
 </body>
