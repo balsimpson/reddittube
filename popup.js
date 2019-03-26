@@ -38,7 +38,7 @@ window.onload = () => {
 // Console logger
 const log = (label, data) => {
 	if (shouldLog) {
-		console.log(label, data);
+		// console.log(label, data);
 	}
 }
 
@@ -70,7 +70,7 @@ function onPlayerStateChange(event) {
 
 	// let video_id = 
 	if (player_state === 0) {
-		console.log('ended playing ', index - 1);
+		// console.log('ended playing ', index - 1);
 
 		if (playlist[index - 1]) {
 			userData.watched_list.push(playlist[index - 1]);
@@ -82,7 +82,7 @@ function onPlayerStateChange(event) {
 		// console.log('unstarted');
 	}
 	if (player_state === 1) {
-		console.log('playing ' + currentPlaylistInfo[index].title);
+		// console.log('playing ' + currentPlaylistInfo[index].title);
 		showVideoInfo(currentPlaylistInfo[index]);
 	}
 	if (player_state === 2) {
@@ -327,10 +327,14 @@ const getVideoInfo = (response) => {
 					title: title,
 					subreddit: feed[i].data.subreddit,
 					upvotes: feed[i].data.score,
+					url: feed[i].data.url,
+					permalink: 'https://www.reddit.com' + feed[i].data.permalink,
 					id: id
 				});
 			}
 		}
+		// console.log('video_info', video_info);
+
 		return video_info;
 	} catch (error) {
 		return error;
@@ -358,7 +362,9 @@ const getUnwatched = (videos, callback) => {
 		let info = {
 			title: videos[key].title,
 			subreddit: videos[key].subreddit,
-			upvotes: videos[key].upvotes
+			upvotes: videos[key].upvotes,
+			url: videos[key].url,
+			permalink: videos[key].permalink,
 		};
 		watchedStatus = watchedList.includes(id);
 
@@ -380,13 +386,15 @@ const checkSubreddit = async (subreddit, channel) => {
 		let results = await xhttpCall('GET', url);
 		let video_info = getVideoInfo(JSON.parse(results.responseText));
 
-		if (video_info.length > 5) {
-			console.log('results', video_info.length);
-			console.log('channel', channel);
+		if (video_info.length > 0) {
+			// console.log('results', video_info.length);
+			// console.log('channel', channel);
 			addNewSubreddit(subreddit, channel)
 			return video_info;
 		} else {
-			console.log('not enough results');
+			// toast
+			let message = `did not find any youtube video on ${subreddit}`;
+			showToast(message, 'error');
 		}
 	} catch (error) {
 		return error;
@@ -399,7 +407,7 @@ const addNewSubreddit = (subreddit, channel) => {
 	let _channel = userData.channels[channel.id];
 	let isAlreadyAdded = _channel.includes(subreddit);
 
-	console.log('isAlreadyAdded', isAlreadyAdded);
+	// console.log('isAlreadyAdded', isAlreadyAdded);
 
 	// check if subreddit is already added
 	if (isAlreadyAdded) {
@@ -431,7 +439,7 @@ const addNewSubreddit = (subreddit, channel) => {
 
 		// update database
 		userData.channels[channel.id].push(subreddit);
-		console.log(userData.channels[channel.id]);
+		// console.log(userData.channels[channel.id]);
 		updateUserData();
 	}
 }
@@ -474,15 +482,15 @@ const showToast = (message, status) => {
 
 // Show Video Info
 const showVideoInfo = (info) => {
-	console.log('showing info');
-
+	console.log('showing info', info.url);
+	let subreddit_link = `https://www.reddit.com/r/${info.subreddit}/top/`
 	let html_txt = `
 	<div class="video-title">
-		${info.title}
+		<a href="${info.permalink}" target="_newtab">${info.title}</a>
 	</div>
 	<div class="video-details">
 		<div class="video-subreddit">
-		${info.subreddit}
+		<a href="${subreddit_link}" target="_newtab">${info.subreddit}</a>
 		</div>
 		<div class="video-upvotes">
 			<i class="fas fa-arrow-alt-circle-up"></i>
@@ -494,9 +502,11 @@ const showVideoInfo = (info) => {
 	video_info.innerHTML = html_txt;
 	// console.log('video_info', video_info);
 	video_info.classList.toggle('show-info');
+	video_info.classList.remove('hide');
 
 	let timeout = setTimeout(() => {
 		video_info.classList.toggle('show-info');
+		video_info.classList.toggle('hide');
 	}, 4000);
 
 	// video_info.addEventListener('mouseover', event => {
@@ -505,15 +515,51 @@ const showVideoInfo = (info) => {
 	// });
 }
 
-document.querySelector('.channel-viewer').addEventListener('mouseout', e => {
-	// console.log(e);
-	document.querySelector('.dark-veil').classList.add('show');;
-});
+// Get Video Info div position
+function offset(el) {
+	var rect = el.getBoundingClientRect(),
+		scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
+		scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+	// return { top: rect.top + scrollTop, left: rect.left + scrollLeft }
+	return rect.left + scrollLeft;
+}
 
+// Open links in a tab
+window.addEventListener('click', (e) => {
+	if (e.target.href !== undefined) {
+		// console.log('link clicked');
+		chrome.tabs.create({ url: e.target.href })
+	}
+})
+
+// When the mouse is over the popup
 document.querySelector('.channel-viewer').addEventListener('mouseover', e => {
 	// console.log(e);
-	document.querySelector('.dark-veil').classList.remove('show');;
+	document.querySelector('.video-info').classList.remove('hide');
+	document.querySelector('.dark-veil').classList.remove('show');
 });
+// When the mouse is NOT over the popup
+document.querySelector('.channel-viewer').addEventListener('mouseout', e => {
+
+	let video_info_div = document.querySelector('.video-info');
+	let video_info_div_left_position = offset(video_info_div);
+	let video_info_div_width = video_info_div.offsetWidth;
+
+	// console.log('offset left', video_info_div_left_position);
+	// console.log('width', video_info_div_width);
+	
+	let diff = video_info_div_width + video_info_div_left_position;
+	// console.log('diff', diff);
+
+	document.querySelector('.dark-veil').classList.add('show');
+
+	if (diff < 14) {
+		document.querySelector('.video-info').classList.add('hide');
+	} else {
+		// console.log('not hiding');
+	}
+});
+
 
 // Switch themes
 const switchThemes = () => {
@@ -527,7 +573,7 @@ const switchThemes = () => {
 
 function resetButtonListener() {
 	document.querySelector('.reset-btn').addEventListener('click', e => {
-		console.log('reset-event', event);
+		// console.log('reset-event', event);
 		let user_data = {
 			channels: {
 				videos: ['videos', 'storytellingvideos', 'Best_Of_YouTube'],
@@ -545,7 +591,7 @@ function resetButtonListener() {
 		};
 		userData = user_data;
 		chrome.storage.local.set({ userData: user_data }, (result) => {
-			console.log('Reset', result);
+			// console.log('Reset', result);
 			menuOptions(userData.channels);
 			renderChannels(userData.channels);
 		});
@@ -558,7 +604,7 @@ function channelRenameListener(catTitle) {
 		catTitle.innerText.trim();
 		let renamed = catTitle.innerText.trim();
 		renamed = renamed.toLowerCase();
-		console.log('renamed', renamed);
+		// console.log('renamed', renamed);
 		if (renamed !== catTitle.id) {
 
 			// change channel name
@@ -572,14 +618,14 @@ function channelRenameListener(catTitle) {
 			delete userData.channels[catTitle.id];
 			updateUserData();
 		}
-		console.log(userData.channels);
+		// console.log(userData.channels);
 	});
 }
 
 function deleteBtnListener(deleteBtn) {
 	deleteBtn.addEventListener('click', e => {
 
-		console.log('index', e.toElement.parentElement.dataset.index);
+		// console.log('index', e.toElement.parentElement.dataset.index);
 		let index = e.toElement.parentElement.dataset.index;
 		let channel = e.toElement.offsetParent.parentElement.id;
 		channel = channel.split('-');
@@ -587,7 +633,7 @@ function deleteBtnListener(deleteBtn) {
 
 		let subreddit = e.target.offsetParent.textContent;
 		subreddit = subreddit.substr(0, subreddit.length - 1);
-		console.log('deleting subreddit', subreddit);
+		// console.log('deleting subreddit', subreddit);
 
 		// toast
 		let message = `${subreddit} has been deleted from ${channel} channel`;
@@ -661,7 +707,7 @@ function showLoading(txt) {
 
 const getUserData = async () => {
 	chrome.storage.local.get(['userData'], (result) => {
-		console.log('Got UserData: ', result.userData);
+		// console.log('Got UserData: ', result.userData);
 		// Save to global variable
 		userData = result.userData;
 		return result.userData;
@@ -695,7 +741,7 @@ const getUserFavourites = async () => {
 const renderChannels = (channels) => {
 	let cat_container = document.querySelector('.categories');
 	cat_container.innerHTML = '';
-	
+
 	for (category in channels) {
 		let cat_btn = document.createElement('div');
 		let subreddits = channels[category].join('+');
@@ -705,7 +751,7 @@ const renderChannels = (channels) => {
 		cat_btn.innerText = category;
 
 		cat_btn.addEventListener('click', e => {
-			console.log(e);
+			// console.log(e);
 			removeClass('.button-lg', 'selected');
 
 			let category = e.target.dataset.subreddit;
