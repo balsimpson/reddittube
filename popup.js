@@ -64,14 +64,17 @@ function onYouTubeIframeAPIReady() {
 function onPlayerStateChange(event) {
 	let player_state = event.data;
 
+	console.log('player_state', player_state);
 	let playlist = event.target.getPlaylist();
 	let index = event.target.getPlaylistIndex();
 	// console.log(playlist, index);
 
+	// loading screen
+	let loading_screen = document.querySelector('.noise');
 	// let video_id = 
 	if (player_state === 0) {
 		// console.log('ended playing ', index - 1);
-
+		loading_screen.style.display = 'flex';
 		if (playlist[index - 1]) {
 			userData.watched_list.push(playlist[index - 1]);
 			// Save to storage
@@ -80,15 +83,20 @@ function onPlayerStateChange(event) {
 	}
 	if (player_state === -1) {
 		// console.log('unstarted');
+		// loading_screen.style.display = 'flex';
 	}
 	if (player_state === 1) {
+		loading_screen.style.display = 'none';
+		loading_screen.style.animation = 'fadeOut 1s;';
 		// console.log('playing ' + currentPlaylistInfo[index].title);
 		showVideoInfo(currentPlaylistInfo[index]);
 	}
 	if (player_state === 2) {
+		// loading_screen.style.display = 'flex';
 		// console.log('cued ' + index++);
 	}
 	if (player_state === 3) {
+		// loading_screen.style.display = 'flex';
 		// console.log('next ' + index);
 		if (playlist[index - 1]) {
 			userData.watched_list.push(playlist[index - 1]);
@@ -97,6 +105,7 @@ function onPlayerStateChange(event) {
 		}
 	}
 	if (player_state === 5) {
+		loading_screen.style.display = 'flex';
 		// console.log('cued');
 	}
 }
@@ -159,8 +168,8 @@ const getFollowerCount = () => {
 }
 
 // Show Menu options
-const menuOptions = async (categories) => {
-	// console.log('category', categories);
+const menuOptions = async (channels) => {
+	// console.log('category', channels);
 	let menuDiv = document.querySelector('.dropdown-menu-content');
 	menuDiv.innerHTML = `
 		<div class="help">
@@ -175,28 +184,46 @@ const menuOptions = async (categories) => {
 	// Reset Button Listener
 	resetButtonListener();
 
-	for (const category in categories) {
+	for (const channel in channels) {
 
-		let catDiv = document.createElement('div');
-		catDiv.className = 'menu-category';
+		let channelDiv = document.createElement('div');
+		channelDiv.className = 'menu-content-channel';
 
 		// Header
-		let catHeader = document.createElement('div');
-		catHeader.className = 'cat-header';
-		let catTitle = document.createElement('div');
-		catTitle.className = 'cat-title';
-		catTitle.id = category;
-		catTitle.innerText = category;
+		let channelHeader = document.createElement('div');
+		channelHeader.className = 'channel-header';
+		let channelTitle = document.createElement('div');
+		channelTitle.className = 'channel-title';
+		channelTitle.id = channel;
+		channelTitle.innerText = channel;
 
+		// Rename channels
+		channelTitle.addEventListener("dblclick", e => {
+			console.log('double-clicked');
+			channelTitle.contentEditable = true;
+			channelTitle.focus();
+			channelRenameListener(channelTitle);
+		});
+
+		// Listen for submit
+		channelTitle.addEventListener('keypress', (event) => {
+			if (event.keyCode == 13) {
+				console.log(event);
+
+				event.preventDefault();
+				channelTitle.blur();
+			}
+		})
+
+		// Add New Subreddit form
 		let addSubreddit = document.createElement('form');
-		addSubreddit.className = 'add-subreddit';
+		addSubreddit.className = 'subreddit-add';
 
-		// let form = document.createElement('form');
 		let inputTxt = document.createElement('input');
-		inputTxt.className = 'input-txt';
+		inputTxt.className = 'subreddit-add-input';
 		inputTxt.placeholder = 'Add a subreddit';
 		let plusBtn = document.createElement('button');
-		plusBtn.className = 'btn-plus';
+		plusBtn.className = 'subreddit-add-btn';
 		plusBtn.innerHTML = '<i class="fas fa-plus"></i>';
 		// form.appendChild(inputTxt);
 		// form.appendChild(plusBtn);
@@ -211,18 +238,16 @@ const menuOptions = async (categories) => {
 			}
 		})
 
-		catHeader.appendChild(catTitle);
-		catHeader.appendChild(addSubreddit);
-		// catHeader.appendChild(inputTxt);
-		// catHeader.appendChild(plusBtn);
+		channelHeader.appendChild(channelTitle);
+		channelHeader.appendChild(addSubreddit);
 
-		let channel = document.createElement('ul');
-		channel.className = 'tags';
-		channel.id = 'ul-' + category.toLowerCase();
+		let channel_ul = document.createElement('ul');
+		channel_ul.className = 'menu-content-channel-ul';
+		channel_ul.id = 'ul-' + channel.toLowerCase();
 
-		categories[category].map((subreddit_name, index) => {
+		channels[channel].map((subreddit_name, index) => {
 			let subreddit = document.createElement('li');
-			subreddit.className = 'tag';
+			subreddit.className = 'menu-content-subreddit';
 			subreddit.innerHTML = subreddit_name;
 			subreddit.setAttribute('data-index', index);
 
@@ -232,32 +257,16 @@ const menuOptions = async (categories) => {
 			// Delete Subreddit Button
 			deleteBtnListener(deleteBtn);
 
-			channel.appendChild(subreddit);
+			channel_ul.appendChild(subreddit);
 		});
 
-		catDiv.appendChild(catHeader);
-		catDiv.appendChild(channel);
+		channelDiv.appendChild(channelHeader);
+		channelDiv.appendChild(channel_ul);
 
-		menuDiv.appendChild(catDiv)
+		menuDiv.appendChild(channelDiv)
 		// console.log('category', category);
 
-		// Rename channels
-		catTitle.addEventListener("dblclick", e => {
-			console.log('double-clicked');
-			catTitle.contentEditable = true;
-			catTitle.focus();
-			channelRenameListener(catTitle);
-		});
-
-		// Listen for submit
-		catTitle.addEventListener('keypress', (event) => {
-			if (event.keyCode == 13) {
-				console.log(event);
-
-				event.preventDefault();
-				catTitle.blur();
-			}
-		})
+		
 
 		// Add Subreddit Plus Button
 		plusBtn.addEventListener('click', e => {
@@ -267,7 +276,7 @@ const menuOptions = async (categories) => {
 			if (inputTxt.value) {
 				plusBtn.innerHTML = '<i class="fas fa-check-circle">';
 				console.log('check subreddit', inputTxt.value);
-				let resp = checkSubreddit(inputTxt.value, catTitle);
+				let resp = checkSubreddit(inputTxt.value, channelTitle);
 				resp.then(data => {
 					// console.log('response', data);
 					inputTxt.value = '';
@@ -277,6 +286,14 @@ const menuOptions = async (categories) => {
 				showToast('Enter a subreddit name!', 'error')
 			}
 		})
+
+		// Theme Switcher
+		// let theme_switcher = document.querySelector('.theme-btn');
+		// theme_switcher.addEventListener('click', e => {
+		// 	// e.preventDefault();
+		// 	// console.log('event', e);
+		// 	switchThemes();
+		// });
 	}
 }
 
@@ -420,7 +437,7 @@ const addNewSubreddit = (subreddit, channel) => {
 		let index = channel_ul.getElementsByTagName("li").length;
 
 		let new_subreddit = document.createElement('li');
-		new_subreddit.className = 'tag';
+		new_subreddit.className = 'menu-content-subreddit';
 		new_subreddit.innerHTML = subreddit;
 		new_subreddit.setAttribute('data-index', index);
 
@@ -551,7 +568,7 @@ document.querySelector('.channel-viewer').addEventListener('mouseout', e => {
 	// console.log('width', video_info_div_width);
 	
 	let diff = video_info_div_width + video_info_div_left_position;
-	// console.log('diff', diff);
+	console.log('diff', diff);
 
 	document.querySelector('.dark-veil').classList.add('show');
 
@@ -563,15 +580,17 @@ document.querySelector('.channel-viewer').addEventListener('mouseout', e => {
 });
 
 
-// Switch themes
-const switchThemes = () => {
-	if (document.documentElement.hasAttribute('theme')) {
-		document.documentElement.removeAttribute('theme');
-	}
-	else {
-		document.documentElement.setAttribute('theme', 'dark');
-	}
-}
+// // Switch themes
+// const switchThemes = () => {
+// 	if (document.documentElement.hasAttribute('theme')) {
+// 		console.log('has root', document.documentElement);
+// 		document.documentElement.removeAttribute('theme');
+// 	}
+// 	else {
+// 		console.log('dark root', document.documentElement);
+// 		document.documentElement.setAttribute('theme', 'dark');
+// 	}
+// }
 
 function resetButtonListener() {
 	document.querySelector('.reset-btn').addEventListener('click', e => {
@@ -653,7 +672,7 @@ function deleteBtnListener(deleteBtn) {
 
 function createDeleteBtn() {
 	let deleteBtn = document.createElement('span');
-	deleteBtn.className = 'close';
+	deleteBtn.className = 'subreddit-delete-btn';
 	deleteBtn.setAttribute("aria-label", "Close");
 	deleteBtn.innerHTML = '&times;';
 	return deleteBtn;
@@ -673,7 +692,7 @@ function addClass(btnId, classToAdd) {
 function showLoading(txt) {
 
 	if (txt) {
-		let categories = txt.split('+');
+		let channels = txt.split('+');
 
 		let parentDiv = document.querySelector('.video');
 		parentDiv.innerHTML = LOADING_HTML;
@@ -741,24 +760,24 @@ const getUserFavourites = async () => {
 }
 
 const renderChannels = (channels) => {
-	let cat_container = document.querySelector('.categories');
-	cat_container.innerHTML = '';
+	let channel_container = document.querySelector('.channels');
+	channel_container.innerHTML = '';
 
-	for (category in channels) {
-		let cat_btn = document.createElement('div');
-		let subreddits = channels[category].join('+');
-		cat_btn.setAttribute('data-subreddit', subreddits);
-		cat_btn.setAttribute('class', 'button-lg');
-		cat_btn.setAttribute('id', category);
-		cat_btn.innerText = category;
+	for (channel in channels) {
+		let channel_btn = document.createElement('div');
+		let subreddits = channels[channel].join('+');
+		channel_btn.setAttribute('data-subreddit', subreddits);
+		channel_btn.setAttribute('class', 'channel-btn');
+		channel_btn.setAttribute('id', channel);
+		channel_btn.innerText = channel;
 
-		cat_btn.addEventListener('click', e => {
+		channel_btn.addEventListener('click', e => {
 			// console.log(e);
-			removeClass('.button-lg', 'selected');
+			removeClass('.channel-btn', 'selected');
 
-			let category = e.target.dataset.subreddit;
+			let subreddit = e.target.dataset.subreddit;
 			e.target.classList.add('selected');
-			e.target.classList.toggle('clicked');
+			e.target.classList.add('clicked');
 
 			// Remove clicked class
 			setTimeout(() => {
@@ -770,18 +789,19 @@ const renderChannels = (channels) => {
 
 			userData.current = e.target.id;
 			updateUserData(userData);
-			getReddit(category);
+			getReddit(subreddit);
 		});
 
 		
-		cat_container.appendChild(cat_btn);
-		cat_btn.style.display = 'flex';
+		channel_container.appendChild(channel_btn);
+		channel_btn.style.display = 'flex';
+		channel_btn.classList.add('fade-in');
 	}
 	document.getElementById(userData.current).classList.add('selected');
 }
 
 function animationDone(e) {
-	// cat_btn.addEventListener("transitionend", animationDone);
+	// channel_btn.addEventListener("transitionend", animationDone);
 	console.log('animation completed', e.target);
 	
 }
@@ -806,4 +826,5 @@ const renderSort = (timeperiod) => {
 	}
 
 	sort.innerText = timeperiod.toUpperCase();
+	sort.classList.add('fade-in');
 }
