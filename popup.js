@@ -31,8 +31,6 @@ window.onload = () => {
 	tag.src = "https://www.youtube.com/iframe_api";
 	let firstScriptTag = document.getElementsByTagName('script')[0];
 	firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-	// showToast('this is some message', 'success');
 };
 
 // Console logger
@@ -216,20 +214,7 @@ const menuOptions = async (channels) => {
 		})
 
 		// Add New Subreddit form
-		let addSubreddit = document.createElement('form');
-		addSubreddit.className = 'subreddit-add';
-
-		let inputTxt = document.createElement('input');
-		inputTxt.className = 'subreddit-add-input';
-		inputTxt.placeholder = 'Add a subreddit';
-		let plusBtn = document.createElement('button');
-		plusBtn.className = 'subreddit-add-btn';
-		plusBtn.innerHTML = '<i class="fas fa-plus"></i>';
-		// form.appendChild(inputTxt);
-		// form.appendChild(plusBtn);
-
-		addSubreddit.appendChild(inputTxt);
-		addSubreddit.appendChild(plusBtn);
+		let { addSubreddit, plusBtn, inputTxt } = addSubredditHTML();
 
 		addSubreddit.addEventListener('keypress', (event) => {
 			if (event.keyCode == 13) {
@@ -266,7 +251,7 @@ const menuOptions = async (channels) => {
 		menuDiv.appendChild(channelDiv)
 		// console.log('category', category);
 
-		
+
 
 		// Add Subreddit Plus Button
 		plusBtn.addEventListener('click', e => {
@@ -532,6 +517,20 @@ const showVideoInfo = (info) => {
 	// });
 }
 
+function addSubredditHTML() {
+	let addSubreddit = document.createElement('form');
+	addSubreddit.className = 'subreddit-add';
+	let inputTxt = document.createElement('input');
+	inputTxt.className = 'subreddit-add-input';
+	inputTxt.placeholder = 'Add a subreddit';
+	let plusBtn = document.createElement('button');
+	plusBtn.className = 'subreddit-add-btn';
+	plusBtn.innerHTML = '<i class="fas fa-plus"></i>';
+	addSubreddit.appendChild(inputTxt);
+	addSubreddit.appendChild(plusBtn);
+	return { addSubreddit, plusBtn, inputTxt };
+}
+
 // Get Video Info div position
 function offset(el) {
 	var rect = el.getBoundingClientRect(),
@@ -566,7 +565,7 @@ document.querySelector('.channel-viewer').addEventListener('mouseout', e => {
 
 	// console.log('offset left', video_info_div_left_position);
 	// console.log('width', video_info_div_width);
-	
+
 	let diff = video_info_div_width + video_info_div_left_position;
 	console.log('diff', diff);
 
@@ -792,7 +791,7 @@ const renderChannels = (channels) => {
 			getReddit(subreddit);
 		});
 
-		
+
 		channel_container.appendChild(channel_btn);
 		channel_btn.style.display = 'flex';
 		channel_btn.classList.add('fade-in');
@@ -803,7 +802,7 @@ const renderChannels = (channels) => {
 function animationDone(e) {
 	// channel_btn.addEventListener("transitionend", animationDone);
 	console.log('animation completed', e.target);
-	
+
 }
 
 const renderSort = (timeperiod) => {

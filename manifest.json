@@ -1,8 +1,8 @@
 {
 	"manifest_version": 2,
-	"name": "Reddit Tube",
-	"description": "The Top YouTube Videos from Reddit.",
-	"version": "1.4",
+	"name": "Reddit TV - YouTube Videos from Reddit",
+	"description": "Create a playlist and play the Top YouTube Videos from your favourite subreddits, in a popup. At the click of a button.",
+	"version": "1.5",
 	"permissions": [
 		"storage",
 		"tabs"
@@ -14,7 +14,6 @@
 		"128": "reddit_128_low.png"
 	},
 	"browser_action": {
-		"default_action": "",
 		"default_popup": "popup.html"
 	},
 	"background": {
